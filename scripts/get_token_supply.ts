@@ -1,6 +1,10 @@
 import { ethers } from 'ethers'
+import { appendFileSync, existsSync } from 'fs'
 import { abiJson } from '../abi/abi'
-import { appendFileSync, readFile } from 'fs'
+
+const PATH = './data/fx-bridge-token-supply.csv'
+const RPC_URL = 'https://eth-mainnet.g.alchemy.com/v2/v0kOjFNd0ddtgqqHqdsieXCGjcCGhWH9'
+
 
 export type BridgeData = {
   block_height?: number
@@ -38,24 +42,27 @@ const ERC20_ABI = [{
   "stateMutability": "view",
   "type": "function"
 }]
+const provider = new ethers.JsonRpcProvider(RPC_URL)
+const contract = new ethers.Contract(
+  BRIDGE_ADDRESS,
+  abiJson,
+  provider
+)
 
 const saveAsCSV = (data: BridgeData) => {
   const csv = `${data.block_height},${data.block_time},${data.PUNDIX},${data.USDT},${data.DAI},${data.EURS},${data.LINK},${data.C98},${data.WETH},${data.BUSD},${data.FRAX},${data.USDC},${data.WBTC}\n`
   try {
-    appendFileSync("./data/fx-bridge-token-supply.csv", csv)
+    if (!existsSync(PATH)) {
+      const header = 'block_height,block_time,PUNDIX,USDT,DAI,EURS,LINK,C98,WETH,BUSD,FRAX,USDC,WBTC\n'
+      appendFileSync(PATH, header)
+    }
+    appendFileSync(PATH, csv)
   } catch (err) {
     console.error(err)
   }
 }
 
-(async () => {
-  const provider = new ethers.JsonRpcProvider('https://eth-mainnet.g.alchemy.com/v2/arkLb1R9vMhFHrhhX7hB5vCcrX5csBol')
-  const contract = new ethers.Contract(
-    BRIDGE_ADDRESS,
-    abiJson,
-    provider
-  )
-
+export const getBridgeData = async () => {
   const tokenList = await contract.getBridgeTokenList()
   let res: BridgeData = {}
   res.block_height = await provider.getBlockNumber()
@@ -74,6 +81,9 @@ const saveAsCSV = (data: BridgeData) => {
     res[tokenSymbol as keyof typeof res] = balance.toString()
   }
   saveAsCSV(res)
-  return res
+}
+
+(async () => {
+  await getBridgeData()
 })().catch(console.error).finally(() => process.exit(0))
 
