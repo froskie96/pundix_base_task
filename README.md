@@ -14,3 +14,5 @@ bash scripts/get_token_supply_1_minute.sh
 ```
 
 Make sure you are in the root folder
+
+The second part of the task is in the feat/get_validators branch
