@@ -13,6 +13,7 @@ To run it for a 1 minute saving data every 5s run
 bash scripts/get_token_supply_1_minute.sh
 ```
 
-Make sure you are in the root folder
-
-The second part of the task is in the feat/get_validators branch
+To get the first 20 validators
+``` bash
+curl -X POST https://fx-json.functionx.io/ -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"validators\",\"params\":{\"height\":\"1\", \"page\":\"1\", \"per_page\":\"20\"}}"
+```
